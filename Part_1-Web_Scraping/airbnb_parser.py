@@ -21,16 +21,19 @@ MAYRHOFEN_LINK = 'https://www.airbnb.com/s/Mayrhofen--Austria/homes?query=Mayrho
 
 RULES_SEARCH_PAGE = {
     'url': {'tag': 'a', 'get': 'href'},
-    'name': {'tag': 'div', 'class': '_hxt6u1e', 'get': 'aria-label'},
-    'name_alt': {'tag': 'a', 'get': 'aria-label'},
+    'name': {'tag': 'span', 'class': 't16jmdcf'},
     'header': {'tag': 'div', 'class': '_b14dlit'},
-    'rooms': {'tag': 'div', 'class': '_kqh46o'},
-    'facilities': {'tag': 'div', 'class': '_kqh46o', 'order': 1},
-    'badge': {'tag': 'div', 'class': '_17bkx6k'},
-    'rating_n_reviews': {'tag': 'span', 'class': '_18khxk1'},
-    'price': {'tag': 'span', 'class': '_1p7iugi'},
-    'price_alt': {'tag': 'span', 'class': '_olc9rf0'},
-    'superhost': {'tag': 'div', 'class': '_ufoy4t'},
+	'rating': {'tag': 'span', 'class':'r1g2zmv6'},
+	'reviews': {'tag': 'span', 'class': 'rapc1b3'},
+	'price': {'tag': 'span', 'class': '_tyxjp1'},
+	'bedroms': {'tag': 'span', 'class': 'mvk3iwl', 'order': 1},
+    #'rooms': {'tag': 'div', 'class': '_kqh46o'},
+    #'facilities': {'tag': 'div', 'class': '_kqh46o', 'order': 1},
+    #'badge': {'tag': 'div', 'class': '_17bkx6k'},
+    #'rating_n_reviews': {'tag': 'span', 'class': '_18khxk1'},
+    #'price': {'tag': 'span', 'class': '_1p7iugi'},
+    #'price_alt': {'tag': 'span', 'class': '_olc9rf0'},
+    #'superhost': {'tag': 'div', 'class': '_ufoy4t'},
 }
 
 RULES_DETAIL_PAGE = {
@@ -66,7 +69,7 @@ def extract_listings(page_url, attempts=10):
             answer = requests.get(page_url, timeout=5)
             content = answer.content
             soup = BeautifulSoup(content, features='html.parser')
-            listings = soup.findAll("div", {"class": "_gig1e7"})
+            listings = soup.findAll("div", {"class": "c1o3pz3i"})
         except:
             # if no response - return a list with an empty soup
             listings = [BeautifulSoup('', features='html.parser')]
@@ -80,7 +83,35 @@ def extract_listings(page_url, attempts=10):
             listings_out = listings
 
     return listings_out
+
+def extract_listings_dynamic(page_url, attempts=10):
+    """Extracts all listings from a given page"""
+    listings_max = 0
+    listings_out = [BeautifulSoup('', features='html.parser')]
+    for idx in range(attempts):
+        try:
+            # answer = requests.get(page_url, timeout=10)
+            # content = BeautifulSoup(answer.content)
+            driver = webdriver.Chrome()
+            driver.get(page_url)
+            page_detailed = driver.page_source
+            driver.quit()
+            detailed_soup = BeautifulSoup(page_detailed)
+            listings = detailed_soup.findAll('div', 'c1o3pz3i')
+        except:
+            listings = [BeautifulSoup('', features='html.parser')]
         
+        if len(listings) == 20:
+            listings_out = listings
+            break
+        
+        if len(listings) >= listings_max:
+            listings_max = len(listings)
+            listings_out = listings
+
+    return listings_out
+
+
         
 def extract_element_data(soup, params):
     """Extracts data from a specified HTML element"""
@@ -237,7 +268,7 @@ class Parser:
         """Extract features from all search pages"""
         features_list = []
         for page in self.url_list:
-            listings = extract_listings(page)
+            listings = extract_listings_dynamic(page)
             for listing in listings:
                 features = extract_listing_features(listing, RULES_SEARCH_PAGE)
                 features['sp_url'] = page
@@ -269,8 +300,8 @@ class Parser:
     def parse(self):
         self.build_urls()
         self.process_search_pages()
-        self.process_detail_pages()
-        self.save('all')
+        #self.process_detail_pages()
+        self.save('basic')
 
 
 if __name__ == "__main__":
