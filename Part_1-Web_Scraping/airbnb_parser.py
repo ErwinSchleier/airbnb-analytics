@@ -8,6 +8,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+
 import json
 import time
 
@@ -90,15 +93,18 @@ def extract_listings_dynamic(page_url, attempts=10):
     listings_out = [BeautifulSoup('', features='html.parser')]
     for idx in range(attempts):
         try:
-            # answer = requests.get(page_url, timeout=10)
-            # content = BeautifulSoup(answer.content)
-            driver = webdriver.Chrome()
+            chrome_options = Options()
+            chrome_options.add_argument('--headless')
+            driver = webdriver.Chrome('/home/edgar/Downloads/chromedriver', chrome_options=chrome_options,  service_args=['--verbose'])
+            
+            #driver = webdriver.Chrome()
             driver.get(page_url)
             page_detailed = driver.page_source
             driver.quit()
             detailed_soup = BeautifulSoup(page_detailed)
             listings = detailed_soup.findAll('div', 'c1o3pz3i')
-        except:
+        except Exception as e:
+            print(e)
             listings = [BeautifulSoup('', features='html.parser')]
         
         if len(listings) == 20:
