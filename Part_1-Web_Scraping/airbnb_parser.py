@@ -112,7 +112,7 @@ def extract_listings_dynamic(page_url, attempts=10):
     return listings_out
 
 
-        
+
 def extract_element_data(soup, params):
     """Extracts data from a specified HTML element"""
     
