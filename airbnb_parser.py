@@ -16,10 +16,10 @@ RULES_SEARCH_PAGE = {
     'url': {'tag': 'a', 'get': 'href'},
     'name': {'tag': 'span', 'class': 't16jmdcf'},
     'header': {'tag': 'div', 'class': '_b14dlit'},
-	'rating': {'tag': 'span', 'class':'r1g2zmv6'},
-	'reviews': {'tag': 'span', 'class': 'rapc1b3'},
-	'price': {'tag': 'span', 'class': '_tyxjp1'},
-	'bedroms': {'tag': 'span', 'class': 'mvk3iwl', 'order': 1}
+    'rating': {'tag': 'span', 'class':'r1g2zmv6'},
+    'reviews': {'tag': 'span', 'class': 'rapc1b3'},
+    'price': {'tag': 'span', 'class': '_tyxjp1'},
+    'bedroms': {'tag': 'span', 'class': 'mvk3iwl', 'order': 1}
 }
 
 def extract_listings_dynamic(page_url, attempts=10):
