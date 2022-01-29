@@ -1,26 +1,16 @@
-import requests
+import json
+import time
+from multiprocessing import Pool
+
+import pandas as pd
+
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver import ActionChains
-
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-
-import json
-import time
-
-import os
-
-import pandas as pd
-
-from multiprocessing import Pool
-
-MAYRHOFEN_LINK = 'https://www.airbnb.com/s/Mayrhofen--Austria/homes?query=Mayrhofen%2C%20Austria&checkin=2021-04-06&checkout=2021-04-13&adults=4'
 
 RULES_SEARCH_PAGE = {
     'url': {'tag': 'a', 'get': 'href'},
@@ -29,63 +19,8 @@ RULES_SEARCH_PAGE = {
 	'rating': {'tag': 'span', 'class':'r1g2zmv6'},
 	'reviews': {'tag': 'span', 'class': 'rapc1b3'},
 	'price': {'tag': 'span', 'class': '_tyxjp1'},
-	'bedroms': {'tag': 'span', 'class': 'mvk3iwl', 'order': 1},
-    #'rooms': {'tag': 'div', 'class': '_kqh46o'},
-    #'facilities': {'tag': 'div', 'class': '_kqh46o', 'order': 1},
-    #'badge': {'tag': 'div', 'class': '_17bkx6k'},
-    #'rating_n_reviews': {'tag': 'span', 'class': '_18khxk1'},
-    #'price': {'tag': 'span', 'class': '_1p7iugi'},
-    #'price_alt': {'tag': 'span', 'class': '_olc9rf0'},
-    #'superhost': {'tag': 'div', 'class': '_ufoy4t'},
+	'bedroms': {'tag': 'span', 'class': 'mvk3iwl', 'order': 1}
 }
-
-RULES_DETAIL_PAGE = {
-    'location': {'tag': 'span', 'class': '_jfp88qr'},
-    
-    'specialties_1': {'tag': 'div', 'class': 't1bchdij', 'order': -1},
-    'specialties_2': {'tag': 'div', 'class': '_1qsawv5', 'order': -1},
-
-    'price_per_night': {'tag': 'div', 'class': '_ymq6as'},
-    
-    'refundables': {'tag': 'div', 'class': '_cexc0g', 'order': -1},
-        
-    'prices_1': {'tag': 'li', 'class': '_ryvszj', 'order': -1},
-    'prices_2': {'tag': 'li', 'class': '_adhikmk', 'order': -1},
-    
-    'listing_ratings': {'tag': 'span', 'class': '_4oybiu', 'order': -1},
-    
-    'host_joined': {'tag': 'div', 'class': '_1fg5h8r', 'order': 1},
-    'host_feats': {'tag': 'span', 'class': '_pog3hg', 'order': -1},
-    
-    'lang_responses': {'tag': 'li', 'class': '_1q2lt74', 'order': -1},
-    'house_rules': {'tag': 'div', 'class': '_u827kd', 'order': -1},
-}
-
-
-def extract_listings(page_url, attempts=10):
-    """Extracts all listings from a given page"""
-    
-    listings_max = 0
-    listings_out = [BeautifulSoup('', features='html.parser')]
-    for idx in range(attempts):
-        try:
-            answer = requests.get(page_url, timeout=5)
-            content = answer.content
-            soup = BeautifulSoup(content, features='html.parser')
-            listings = soup.findAll("div", {"class": "c1o3pz3i"})
-        except:
-            # if no response - return a list with an empty soup
-            listings = [BeautifulSoup('', features='html.parser')]
-
-        if len(listings) == 20:
-            listings_out = listings
-            break
-
-        if len(listings) >= listings_max:
-            listings_max = len(listings)
-            listings_out = listings
-
-    return listings_out
 
 def extract_listings_dynamic(page_url, attempts=10):
     """Extracts all listings from a given page"""
@@ -93,11 +28,13 @@ def extract_listings_dynamic(page_url, attempts=10):
     listings_out = [BeautifulSoup('', features='html.parser')]
     for idx in range(attempts):
         try:
+            """ Headless server configuration for chrome browser
             chrome_options = Options()
             chrome_options.add_argument('--headless')
-            driver = webdriver.Chrome('/home/edgar/Downloads/chromedriver', chrome_options=chrome_options,  service_args=['--verbose'])
+            driver = webdriver.Chrome('/home/edgar/Downloads/chromedriver', chrome_options=chrome_options,  service_args=['--verbose']) #change the path to your chromedriver destination
+            """
             
-            #driver = webdriver.Chrome()
+            driver = webdriver.Chrome() # Comment this out for headless server configuration
             driver.get(page_url)
             page_detailed = driver.page_source
             driver.quit()
@@ -116,8 +53,6 @@ def extract_listings_dynamic(page_url, attempts=10):
             listings_out = listings
 
     return listings_out
-
-
 
 def extract_element_data(soup, params):
     """Extracts data from a specified HTML element"""
@@ -143,7 +78,6 @@ def extract_element_data(soup, params):
     
     return output
 
-
 def extract_listing_features(soup, rules):
     """Extracts all features from the listing"""
     features_dict = {}
@@ -154,7 +88,6 @@ def extract_listing_features(soup, rules):
             features_dict[feature] = 'empty'
     
     return features_dict
-
 
 def extract_soup_js(listing_url, waiting_time=[20, 1]):
     """Extracts HTML from JS pages: open, wait, click, wait, extract"""
@@ -224,22 +157,6 @@ def extract_soup_js(listing_url, waiting_time=[20, 1]):
 
     return BeautifulSoup(detail_page, features='html.parser')
 
-
-def scrape_detail_page(base_features):
-    """Scrapes the detail page and merges the result with basic features"""
-    
-    detailed_url = 'https://www.airbnb.com' + base_features['url']
-    soup_detail = extract_soup_js(detailed_url)
-
-    features_detailed = extract_listing_features(soup_detail, RULES_DETAIL_PAGE)
-    features_amenities = extract_amenities(soup_detail)
-
-    features_detailed['amenities'] = features_amenities
-    features_all = {**base_features, **features_detailed}
-
-    return features_all
-
-
 def extract_amenities(soup):
     amenities = soup.find_all('div', {'class': '_aujnou'})
     
@@ -253,12 +170,10 @@ def extract_amenities(soup):
         
     return json.dumps(amenities_dict)
 
-
 class Parser:
     def __init__(self, link, out_file):
         self.link = link
         self.out_file = out_file
-
     
     def build_urls(self, listings_per_page=20, pages_per_location=15):
         """Builds links for all search pages for a given location"""
@@ -268,7 +183,6 @@ class Parser:
             url_pagination = self.link + f'&items_offset={offset}'
             url_list.append(url_pagination)
             self.url_list = url_list
-
 
     def process_search_pages(self):
         """Extract features from all search pages"""
@@ -281,18 +195,6 @@ class Parser:
                 features_list.append(features)
 
         self.base_features_list = features_list
-        
-
-    def process_detail_pages(self):
-        """Runs detail pages processing in parallel"""
-        n_pools = os.cpu_count() // 2
-        with Pool(n_pools) as pool:
-            result = pool.map(scrape_detail_page, self.base_features_list)
-        pool.close()
-        pool.join()
-
-        self.all_features_list = result
-
 
     def save(self, feature_set='all'):
         if feature_set == 'basic':
@@ -306,12 +208,4 @@ class Parser:
     def parse(self):
         self.build_urls()
         self.process_search_pages()
-        #self.process_detail_pages()
         self.save('basic')
-
-
-if __name__ == "__main__":
-    new_parser = Parser(MAYRHOFEN_LINK, './test.csv')
-    t0 = time.time()
-    new_parser.parse()
-    print(time.time() - t0)

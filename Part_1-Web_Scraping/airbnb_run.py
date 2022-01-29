@@ -10,11 +10,6 @@ if __name__ == "__main__":
     date_2 = date_2.strftime('%Y-%m-%d')
 
     locations = {
-        #'Mayrhofen_AT': f'https://www.airbnb.com/s/Mayrhofen--Austria/homes?query=Mayrhofen%2C%20Austria&checkin={date_1}&checkout={date_2}&adults=4',
-        #'Kitzbuehel_AT': f'https://www.airbnb.com/s/Kitzbuhel--Austria/homes?query=Kitzbuhel%2C%20Austria&checkin={date_1}&checkout={date_2}&adults=4',
-        #'Ischgl_AT': f'https://www.airbnb.com/s/Ischgl--Austria/homes?query=Ischgl%2C%20Austria&checkin={date_1}&checkout={date_2}&adults=4',
-        #'Soelden_AT': f'https://www.airbnb.com/s/Solden--Austria/homes?query=Solden%2C%20Austria&checkin={date_1}&checkout={date_2}&adults=4',
-        #'ZellAmSee_AT': f'https://www.airbnb.com/s/Zell-am-See--Austria/homes?query=Zell%20am%20See%2C%20Austria&checkin={date_1}&checkout={date_2}&adults=4',
         'Valencia_ESP': f'https://www.airbnb.com/s/Valencia/homes?query=Valencia&place_id=ChIJb7Dv8ExPYA0ROR1_HwFRo7Q&checkin=2022-03-01&checkout=2022-03-31&adults=3'
     }
 
