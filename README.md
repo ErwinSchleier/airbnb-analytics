@@ -1,5 +1,3 @@
-Project forked from [x-technology](https://github.com/x-technology/airbnb-analytics)
-
 ## Project Overview
 
 A web scraper for AirBnb. This script will extract information like title, price, rating and bedrooms for a given location and store them in a csv file. You can use it to track your next holiday target or collect data for some analytics.
